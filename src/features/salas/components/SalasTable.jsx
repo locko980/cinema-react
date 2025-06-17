@@ -2,6 +2,7 @@ import React from 'react'
 
 export default function SalasTable({ salas, onEdit, onDelete }) {
   return (
+    <div className="table-responsive">
     <table className="table table-striped">
       <thead>
         <tr>
@@ -12,28 +13,29 @@ export default function SalasTable({ salas, onEdit, onDelete }) {
         </tr>
       </thead>
       <tbody>
-        {salas.length === 0 ? (
-          <tr>
-            <td colSpan={4} className="text-center">Nenhuma sala cadastrada.</td>
-          </tr>
-        ) : (
-          salas.map((sala, idx) => (
-            <tr key={idx}>
+          {salas.map((sala) => (
+            <tr key={sala.id}>
               <td>{sala.nome}</td>
               <td>{sala.capacidade}</td>
               <td>{sala.tipo}</td>
               <td>
-                <button className="btn btn-warning btn-sm me-2" onClick={() => onEdit(idx)}>
+                <button
+                  className="btn btn-sm btn-primary me-2"
+                  onClick={() => onEdit(sala.id)}
+                >
                   Editar
                 </button>
-                <button className="btn btn-danger btn-sm" onClick={() => onDelete(idx)}>
+                <button
+                  className="btn btn-sm btn-danger"
+                  onClick={() => onDelete(sala.id)}
+                >
                   Excluir
                 </button>
               </td>
             </tr>
-          ))
-        )}
+          ))}
       </tbody>
     </table>
+    </div>
   )
 }

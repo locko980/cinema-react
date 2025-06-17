@@ -9,28 +9,32 @@ export default function SessoesTable({ sessoes, onEdit, onDelete }) {
           <th>Sala</th>
           <th>Data</th>
           <th>Horário</th>
-          <th>Preço</th>
           <th>Ações</th>
         </tr>
       </thead>
       <tbody>
         {sessoes.length === 0 ? (
           <tr>
-            <td colSpan={6} className="text-center">Nenhuma sessão cadastrada.</td>
+            <td colSpan={5} className="text-center">Nenhuma sessão cadastrada.</td>
           </tr>
         ) : (
-          sessoes.map((sessao, idx) => (
-            <tr key={idx}>
-              <td>{sessao.filme}</td>
-              <td>{sessao.sala}</td>
-              <td>{sessao.data}</td>
+          sessoes.map((sessao) => (
+            <tr key={sessao.id}>
+              <td>{sessao.filme?.titulo}</td>
+              <td>{sessao.sala?.nome} - {sessao.sala?.tipo}</td>
+              <td>{new Date(sessao.data).toLocaleDateString()}</td>
               <td>{sessao.horario}</td>
-              <td>R$ {Number(sessao.preco).toFixed(2)}</td>
               <td>
-                <button className="btn btn-warning btn-sm me-2" onClick={() => onEdit(idx)}>
+                <button 
+                  className="btn btn-warning btn-sm me-2" 
+                  onClick={() => onEdit(sessao.id)}
+                >
                   Editar
                 </button>
-                <button className="btn btn-danger btn-sm" onClick={() => onDelete(idx)}>
+                <button 
+                  className="btn btn-danger btn-sm" 
+                  onClick={() => onDelete(sessao.id)}
+                >
                   Excluir
                 </button>
               </td>

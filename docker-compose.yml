@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: cinema-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: cinema_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - cinema-network
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: cinema-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "admin@cinema.com"
+      PGADMIN_DEFAULT_PASSWORD: "admin123"
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - cinema-network
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./cinema-api
+      dockerfile: Dockerfile
+    container_name: cinema-backend
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/cinema_db
+      - NODE_ENV=production
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "3001:3000"
+    depends_on:
+      - postgres
+    networks:
+      - cinema-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cinema-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - cinema-network
+    restart: unless-stopped
+
+networks:
+  cinema-network:
+    driver: bridge
+
+volumes:
+  postgres_data: 

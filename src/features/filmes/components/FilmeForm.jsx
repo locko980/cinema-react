@@ -10,9 +10,60 @@ const initialForm = {
   imagem: ''
 }
 
+const MAX_IMAGE_SIZE = 800 // Tamanho máximo em pixels
+
+const resizeImage = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const img = new Image()
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas')
+          let width = img.width
+          let height = img.height
+
+          if (width > height && width > MAX_IMAGE_SIZE) {
+            height *= MAX_IMAGE_SIZE / width
+            width = MAX_IMAGE_SIZE
+          } else if (height > MAX_IMAGE_SIZE) {
+            width *= MAX_IMAGE_SIZE / height
+            height = MAX_IMAGE_SIZE
+          }
+
+          canvas.width = width
+          canvas.height = height
+          const ctx = canvas.getContext('2d')
+          ctx.drawImage(img, 0, 0, width, height)
+          
+          // Comprimir a imagem com qualidade 0.7
+          const resizedImage = canvas.toDataURL('image/jpeg', 0.7)
+          
+          // Verificar o tamanho da string base64
+          const base64Length = resizedImage.length
+          if (base64Length > 5000000) { // 5MB
+            reject(new Error('Imagem muito grande após compressão'))
+            return
+          }
+          
+          resolve(resizedImage)
+        } catch (error) {
+          reject(error)
+        }
+      }
+      img.onerror = () => reject(new Error('Erro ao carregar imagem'))
+      img.src = e.target.result
+    }
+    reader.onerror = () => reject(new Error('Erro ao ler arquivo'))
+    reader.readAsDataURL(file)
+  })
+}
+
 export default function FilmeForm({ onSave, initialData }) {
   const [form, setForm] = useState(initialForm)
   const [preview, setPreview] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     if (initialData) {
@@ -22,6 +73,7 @@ export default function FilmeForm({ onSave, initialData }) {
       setForm(initialForm)
       setPreview('')
     }
+    setError(null)
   }, [initialData])
 
   const handleChange = (e) => {
@@ -29,23 +81,33 @@ export default function FilmeForm({ onSave, initialData }) {
     setForm({ ...form, [name]: value })
   }
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files[0]
     if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setForm({ ...form, imagem: reader.result })
-        setPreview(reader.result)
+      if (file.size > 10000000) { // 10MB
+        setError('Arquivo muito grande. Por favor, selecione uma imagem menor que 10MB.')
+        return
       }
-      reader.readAsDataURL(file)
+
+      setLoading(true)
+      setError(null)
+      try {
+        const resizedImage = await resizeImage(file)
+        setForm({ ...form, imagem: resizedImage })
+        setPreview(resizedImage)
+      } catch (error) {
+        console.error('Erro ao processar imagem:', error)
+        setError('Erro ao processar imagem. Por favor, tente outra imagem.')
+      } finally {
+        setLoading(false)
+      }
     }
   }
 
   const handleSubmit = (e) => {
     e.preventDefault()
+    if (loading) return
     onSave(form)
-    setForm(initialForm)
-    setPreview('')
   }
 
   return (
@@ -80,13 +142,45 @@ export default function FilmeForm({ onSave, initialData }) {
         <div className="col-md-6">
           <div className="mb-3">
             <label className="form-label">Imagem</label>
-            <input className="form-control" type="file" accept="image/*" onChange={handleImageChange} />
-            {preview && <img src={preview} alt="Prévia" style={{maxWidth: 300, marginTop: 10}} />}
+            <input 
+              className="form-control" 
+              type="file" 
+              accept="image/*" 
+              onChange={handleImageChange} 
+              disabled={loading} 
+            />
+            {loading && (
+              <div className="text-info mt-2">
+                <div className="spinner-border spinner-border-sm me-2" role="status">
+                  <span className="visually-hidden">Processando...</span>
+                </div>
+                Processando imagem...
+              </div>
+            )}
+            {error && <div className="text-danger mt-2">{error}</div>}
+            {preview && (
+              <div className="mt-3">
+                <img 
+                  src={preview} 
+                  alt="Prévia" 
+                  style={{
+                    maxWidth: '100%',
+                    maxHeight: 300,
+                    objectFit: 'contain'
+                  }} 
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
-      <button className="btn btn-primary" type="submit">
-        Salvar
+      <button className="btn btn-primary" type="submit" disabled={loading}>
+        {loading ? (
+          <>
+            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            Processando...
+          </>
+        ) : 'Salvar'}
       </button>
     </form>
   )

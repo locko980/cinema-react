@@ -1,23 +1,39 @@
 import React, { useState, useEffect } from 'react'
+import { sessoesService } from '../../../services/sessoesService'
+import { usuariosService } from '../../../services/usuariosService'
 
 const initialForm = {
-  sessao: '',
-  quantidade: 1,
-  comprador: '', // opcional: nome do cliente
+  sessaoId: '',
+  usuarioId: '',
 }
 
-export default function IngressoForm({ onSave, initialData }) {
+export default function IngressoForm({ onSave }) {
   const [form, setForm] = useState(initialForm)
   const [sessoes, setSessoes] = useState([])
+  const [usuarios, setUsuarios] = useState([])
 
   useEffect(() => {
-    setSessoes(JSON.parse(localStorage.getItem('sessoes')) || [])
+    loadSessoes()
+    loadUsuarios()
   }, [])
 
-  useEffect(() => {
-    if (initialData) setForm(initialData)
-    else setForm(initialForm)
-  }, [initialData])
+  const loadSessoes = async () => {
+    try {
+      const data = await sessoesService.getAll()
+      setSessoes(data)
+    } catch (error) {
+      console.error('Erro ao carregar sessões:', error)
+    }
+  }
+
+  const loadUsuarios = async () => {
+    try {
+      const data = await usuariosService.getAll()
+      setUsuarios(data)
+    } catch (error) {
+      console.error('Erro ao carregar usuários:', error)
+    }
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -26,7 +42,14 @@ export default function IngressoForm({ onSave, initialData }) {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    onSave(form)
+    if (!form.sessaoId || !form.usuarioId) {
+      alert('Por favor, preencha todos os campos')
+      return
+    }
+    onSave({
+      sessaoId: Number(form.sessaoId),
+      usuarioId: Number(form.usuarioId)
+    })
     setForm(initialForm)
   }
 
@@ -35,47 +58,43 @@ export default function IngressoForm({ onSave, initialData }) {
       <div className="row">
         <div className="col-md-6">
           <div className="mb-3">
-            <label className="form-label">Sessão</label>
+            <label className="form-label">Usuário</label>
             <select
               className="form-select"
-              name="sessao"
-              value={form.sessao}
+              name="usuarioId"
+              value={form.usuarioId}
               onChange={handleChange}
               required
             >
               <option value="">Selecione</option>
-              {sessoes.map((s, idx) => (
-                <option key={idx} value={`${s.filme} - ${s.data} ${s.horario}`}>
-                  {s.filme} ({s.data} {s.horario}) - Sala {s.sala}
+              {usuarios.map((usuario) => (
+                <option key={usuario.id} value={usuario.id}>
+                  {usuario.nome || usuario.email}
                 </option>
               ))}
             </select>
           </div>
           <div className="mb-3">
-            <label className="form-label">Quantidade</label>
-            <input
-              className="form-control"
-              type="number"
-              name="quantidade"
-              min={1}
-              value={form.quantidade}
+            <label className="form-label">Sessão</label>
+            <select
+              className="form-select"
+              name="sessaoId"
+              value={form.sessaoId}
               onChange={handleChange}
               required
-            />
-          </div>
-          <div className="mb-3">
-            <label className="form-label">Nome do comprador (opcional)</label>
-            <input
-              className="form-control"
-              name="comprador"
-              value={form.comprador}
-              onChange={handleChange}
-            />
+            >
+              <option value="">Selecione</option>
+              {sessoes.map((sessao) => (
+                <option key={sessao.id} value={sessao.id}>
+                  {sessao.filme?.titulo} - {new Date(sessao.data).toLocaleDateString()} {sessao.horario} - Sala {sessao.sala?.nome}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
       </div>
       <button className="btn btn-primary" type="submit">
-        Salvar
+        Comprar Ingresso
       </button>
     </form>
   )

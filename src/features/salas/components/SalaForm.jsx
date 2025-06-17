@@ -10,19 +10,37 @@ export default function SalaForm({ onSave, initialData }) {
   const [form, setForm] = useState(initialForm)
 
   useEffect(() => {
-    if (initialData) setForm(initialData)
-    else setForm(initialForm)
+    console.log('initialData recebido:', initialData)
+    if (initialData) {
+      setForm({
+        id: initialData.id,
+        nome: initialData.nome,
+        capacidade: initialData.capacidade,
+        tipo: initialData.tipo,
+      })
+    } else {
+      setForm(initialForm)
+    }
   }, [initialData])
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setForm({ ...form, [name]: value })
+    const newValue = name === 'capacidade' ? parseInt(value) || '' : value
+    console.log('Campo alterado:', { name, value, newValue })
+    setForm(prev => ({ ...prev, [name]: newValue }))
   }
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    onSave(form)
-    setForm(initialForm)
+    console.log('Enviando formulário:', form)
+    const formData = {
+      ...form,
+      capacidade: parseInt(form.capacidade)
+    }
+    onSave(formData)
+    if (!initialData) {
+      setForm(initialForm)
+    }
   }
 
   return (
@@ -31,15 +49,35 @@ export default function SalaForm({ onSave, initialData }) {
         <div className="col-md-6">
           <div className="mb-3">
             <label className="form-label">Nome da Sala</label>
-            <input className="form-control" name="nome" value={form.nome} onChange={handleChange} required />
+            <input
+              className="form-control"
+              name="nome"
+              value={form.nome || ''}
+              onChange={handleChange}
+              required
+            />
           </div>
           <div className="mb-3">
             <label className="form-label">Capacidade</label>
-            <input className="form-control" name="capacidade" value={form.capacidade} onChange={handleChange} type="number" required />
+            <input
+              className="form-control"
+              name="capacidade"
+              type="number"
+              min="1"
+              value={form.capacidade || ''}
+              onChange={handleChange}
+              required
+            />
           </div>
           <div className="mb-3">
             <label className="form-label">Tipo</label>
-            <select className="form-select" name="tipo" value={form.tipo} onChange={handleChange}>
+            <select
+              className="form-select"
+              name="tipo"
+              value={form.tipo || ''}
+              onChange={handleChange}
+              required
+            >
               <option value="">Selecione</option>
               <option value="2D">2D</option>
               <option value="3D">3D</option>
@@ -49,8 +87,20 @@ export default function SalaForm({ onSave, initialData }) {
         </div>
       </div>
       <button className="btn btn-primary" type="submit">
-        Salvar
+        {initialData ? 'Atualizar' : 'Salvar'}
       </button>
+      {initialData && (
+        <button
+          type="button"
+          className="btn btn-secondary ms-2"
+          onClick={() => {
+            setForm(initialForm)
+            onSave(null)
+          }}
+        >
+          Cancelar
+        </button>
+      )}
     </form>
   )
 }

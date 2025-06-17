@@ -22,7 +22,7 @@ export default function FilmesTable({ filmes, onEdit, onDelete }) {
           </tr>
         ) : (
           filmes.map((filme, idx) => (
-            <tr key={idx}>
+            <tr key={filme.id}>
               <td>{filme.titulo}</td>
               <td>{filme.descricao}</td>
               <td>{filme.genero}</td>
@@ -35,10 +35,10 @@ export default function FilmesTable({ filmes, onEdit, onDelete }) {
                 )}
               </td>
               <td>
-                <button className="btn btn-warning btn-sm me-2" onClick={() => onEdit(idx)}>
+                <button className="btn btn-warning btn-sm me-2" onClick={() => onEdit(filme)}>
                   Editar
                 </button>
-                <button className="btn btn-danger btn-sm" onClick={() => onDelete(idx)}>
+                <button className="btn btn-danger btn-sm" onClick={() => onDelete(filme.id)}>
                   Excluir
                 </button>
               </td>

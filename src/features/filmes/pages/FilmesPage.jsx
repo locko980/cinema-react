@@ -2,41 +2,89 @@ import React, { useState, useEffect } from 'react'
 import FilmeForm from '../components/FilmeForm'
 import FilmesTable from '../components/FilmesTable'
 import Navbar from '../../../components/Navbar'
+import { filmesService } from '../../../services/filmesService'
 
 export default function FilmesPage() {
-  const [filmes, setFilmes] = useState(() =>
-    JSON.parse(localStorage.getItem('filmes')) || []
-  )
-  const [editIndex, setEditIndex] = useState(null)
+  const [filmes, setFilmes] = useState([])
   const [editingFilme, setEditingFilme] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
-    localStorage.setItem('filmes', JSON.stringify(filmes))
-  }, [filmes])
+    loadFilmes()
+  }, [])
 
-  const handleSaveFilme = (filme) => {
-    if (editIndex !== null) {
-      const novosFilmes = [...filmes]
-      novosFilmes[editIndex] = filme
-      setFilmes(novosFilmes)
-      setEditIndex(null)
-      setEditingFilme(null)
-    } else {
-      setFilmes([...filmes, filme])
+  const loadFilmes = async () => {
+    try {
+      setLoading(true)
+      const data = await filmesService.getAll()
+      setFilmes(data)
+      setError(null)
+    } catch (err) {
+      setError('Erro ao carregar filmes')
+      console.error(err)
+    } finally {
+      setLoading(false)
     }
   }
 
-  const handleEditFilme = (index) => {
-    setEditIndex(index)
-    setEditingFilme(filmes[index])
+  const handleSaveFilme = async (filme) => {
+    try {
+      setLoading(true)
+      if (editingFilme) {
+        await filmesService.update(filme.id, filme)
+      } else {
+        await filmesService.create(filme)
+      }
+      await loadFilmes()
+      setEditingFilme(null)
+      setError(null)
+    } catch (err) {
+      setError('Erro ao salvar filme')
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const handleDeleteFilme = (index) => {
-    setFilmes(filmes.filter((_, i) => i !== index))
-    if (editIndex === index) {
-      setEditIndex(null)
-      setEditingFilme(null)
+  const handleEditFilme = (filme) => {
+    setEditingFilme(filme)
+  }
+
+  const handleDeleteFilme = async (id) => {
+    try {
+      setLoading(true)
+      await filmesService.delete(id)
+      await loadFilmes()
+      if (editingFilme && editingFilme.id === id) {
+        setEditingFilme(null)
+      }
+      setError(null)
+    } catch (err) {
+      setError('Erro ao deletar filme')
+      console.error(err)
+    } finally {
+      setLoading(false)
     }
+  }
+
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <div className="container">
+          <h2 className="mt-4 mb-3">Cadastro de Filmes</h2>
+          <div className="alert alert-info">
+            <div className="d-flex align-items-center">
+              <div className="spinner-border spinner-border-sm me-2" role="status">
+                <span className="visually-hidden">Carregando...</span>
+              </div>
+              <span>Carregando...</span>
+            </div>
+          </div>
+        </div>
+      </>
+    )
   }
 
   return (
@@ -44,6 +92,7 @@ export default function FilmesPage() {
       <Navbar />
       <div className="container">
         <h2 className="mt-4 mb-3">Cadastro de Filmes</h2>
+        {error && <div className="alert alert-danger">{error}</div>}
         <FilmeForm onSave={handleSaveFilme} initialData={editingFilme} />
         <FilmesTable
           filmes={filmes}

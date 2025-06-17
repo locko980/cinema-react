@@ -4,26 +4,44 @@ import FeatureCard from '../../../components/FeatureCard'
 
 export default function HomeFeatures() {
   return (
-    <div className="row mt-4">
-      <FeatureCard
-        title="Cadastro de Filmes"
-        text="Cadastre novos filmes…"
-        to="/filmes"
-        btnText="Acessar"
-      />
-      <FeatureCard
-        title="Cadastro de Salas"
-        text="Gerencie as salas…"
-        to="/salas"
-        btnText="Acessar"
-      />
-      <FeatureCard
-        title="Sessões e Ingressos"
-        text="Configure as sessões…"
-        to="/sessoes"
-        btnText="Sessões"
-        secondary={{ to: '/ingressos', text: 'Ingressos' }}
-      />
+    <div className="features-grid">
+      <div className="features-row">
+        <div className="feature-item">
+          <FeatureCard
+            title="Cadastro de Filmes"
+            text="Cadastre e gerencie os filmes em cartaz"
+            to="/filmes"
+            btnText="Acessar"
+          />
+        </div>
+        <div className="feature-item">
+          <FeatureCard
+            title="Cadastro de Salas"
+            text="Gerencie as salas do cinema"
+            to="/salas"
+            btnText="Acessar"
+          />
+        </div>
+      </div>
+      <div className="features-row">
+        <div className="feature-item">
+          <FeatureCard
+            title="Sessões e Ingressos"
+            text="Configure as sessões e venda de ingressos"
+            to="/sessoes"
+            btnText="Sessões"
+            secondary={{ to: '/ingressos', text: 'Ingressos' }}
+          />
+        </div>
+        <div className="feature-item">
+          <FeatureCard
+            title="Usuários"
+            text="Gerencie os usuários do sistema"
+            to="/usuarios"
+            btnText="Acessar"
+          />
+        </div>
+      </div>
     </div>
   )
 }

@@ -13,11 +13,14 @@ export default function Navbar() {
           type="button"
           data-bs-toggle="collapse"
           data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
         >
           <span className="navbar-toggler-icon"></span>
         </button>
         <div className="collapse navbar-collapse" id="navbarNav">
-          <ul className="navbar-nav ms-auto">
+          <ul className="navbar-nav">
             <li className="nav-item">
               <NavLink className="nav-link" to="/" end>
                 Início
@@ -41,6 +44,11 @@ export default function Navbar() {
             <li className="nav-item">
               <NavLink className="nav-link" to="/ingressos">
                 Ingressos
+              </NavLink>
+            </li>
+            <li className="nav-item">
+              <NavLink className="nav-link" to="/usuarios">
+                Usuários
               </NavLink>
             </li>
           </ul>
