@@ -26,7 +26,14 @@ export default function UsuarioForm({ onSave, initialData }) {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    onSave(form)
+
+    const formData = {
+      ...form,
+      senha: form.password
+    }
+    delete formData.password
+
+    onSave(formData)
     setForm(initialForm)
   }
 
@@ -75,4 +82,4 @@ export default function UsuarioForm({ onSave, initialData }) {
       </button>
     </form>
   )
-} 
+}
